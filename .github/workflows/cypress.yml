@@ -6,4 +6,9 @@ jobs:
     cypress-run:
         runs-on: ubuntu-24.04
         steps:
-        - uses: cypress-io/github-action@v6
+            - uses: cypress-io/github-action@v6
+              with:
+                  working-directory: ui
+                  build: yarn build
+                  start: yarn start
+                  browser: chrome
