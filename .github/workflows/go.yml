@@ -14,7 +14,7 @@ jobs:
                   go-version-file: ./server/go.mod
 
             - name: Build
-              run: cd server && go build ./cmd -v
+              run: cd server && go build -C cmd -v ./...
 
             - name: Test
               uses: robherley/go-test-action@v0
