@@ -1,0 +1,42 @@
+services:
+    api:
+        build:
+            context: ./server
+            dockerfile: Dockerfile
+        image: api
+        container_name: api
+        restart: unless-stopped
+        env_file: .env
+        depends_on:
+            - mongo
+
+    ui:
+        build:
+            context: ./ui
+            dockerfile: Dockerfile
+        image: ui
+        container_name: ui
+        restart: unless-stopped
+        env_file: .env
+        ports:
+            - "${UI_PORT:-80}:80"
+
+    mongo:
+        image: mongo:7.0.12
+        container_name: mongo
+        restart: unless-stopped
+        env_file: .env
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=${DB_ADMIN}
+            - MONGO_INITDB_ROOT_PASSWORD=${DB_ADMIN_PWD}
+            - MONGO_INITDB_DATABASE=${DB_NAME}
+        ports:
+            - "${DB_PORT}:27017"
+        command: mongod --bind_ip_all
+        volumes:
+            - dbdata:/data/db
+
+volumes:
+    dbdata:
+    cache:
+        driver: local
