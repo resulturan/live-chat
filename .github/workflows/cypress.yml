@@ -1,4 +1,4 @@
-name: Cypress Tests
+name: Cypress UI Tests
 
 on: push
 
