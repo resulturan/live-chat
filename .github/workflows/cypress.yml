@@ -7,10 +7,18 @@ jobs:
         runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v4
+            - run: corepack enable
+            - name: Set up Yarn cache
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: yarn
+                  cache-dependency-path: ui/yarn.lock
             - uses: cypress-io/github-action@v6
               with:
                   working-directory: ui
+                  install-command: yarn install
                   build: yarn build
-                  start: yarn start
+                  start: yarn dev
                   browser: chrome
                   component: true
