@@ -3,45 +3,26 @@ package validation
 import (
 	"regexp"
 	"strings"
+
+	"resulturan/live-chat-server/internal/errors"
 )
-
-type ValidationError struct {
-	Field   string
-	Message string
-}
-
-func (e *ValidationError) Error() string {
-	return e.Message
-}
 
 func ValidateUsername(username string) error {
 	if strings.TrimSpace(username) == "" {
-		return &ValidationError{
-			Field:   "username",
-			Message: "Username is required",
-		}
+		return errors.NewRequiredError("username")
 	}
 
 	if len(username) < 3 {
-		return &ValidationError{
-			Field:   "username",
-			Message: "Username must be at least 3 characters long",
-		}
+		return errors.NewLengthError("username", 3, 20)
 	}
 
 	if len(username) > 20 {
-		return &ValidationError{
-			Field:   "username",
-			Message: "Username must be less than 20 characters long",
-		}
+		return errors.NewLengthError("username", 3, 20)
 	}
 
 	validUsername := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 	if !validUsername.MatchString(username) {
-		return &ValidationError{
-			Field:   "username",
-			Message: "Username can only contain letters, numbers, underscores, and hyphens",
-		}
+		return errors.NewFormatError("username", "Username can only contain letters, numbers, underscores, and hyphens")
 	}
 
 	return nil
@@ -49,17 +30,11 @@ func ValidateUsername(username string) error {
 
 func ValidateMessage(message string) error {
 	if strings.TrimSpace(message) == "" {
-		return &ValidationError{
-			Field:   "message",
-			Message: "Message is required",
-		}
+		return errors.NewRequiredError("message")
 	}
 
 	if len(message) > 1000 {
-		return &ValidationError{
-			Field:   "message",
-			Message: "Message must be less than 1000 characters long",
-		}
+		return errors.NewLengthError("message", 1, 1000)
 	}
 
 	// Check for potentially harmful content
@@ -76,10 +51,7 @@ func ValidateMessage(message string) error {
 			continue
 		}
 		if matched {
-			return &ValidationError{
-				Field:   "message",
-				Message: "Message contains potentially harmful content",
-			}
+			return errors.NewContentError("message", "Message contains potentially harmful content")
 		}
 	}
 

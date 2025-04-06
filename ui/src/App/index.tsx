@@ -22,7 +22,6 @@ export default function App() {
                 <AntApp>
                     <Theme>
                         <Chat />
-
                         <LoginModal />
                     </Theme>
                 </AntApp>

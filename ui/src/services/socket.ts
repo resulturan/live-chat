@@ -1,8 +1,10 @@
 import { Message, SocketAction, SocketMessage } from "../types";
+import { AppError } from "../types/Error";
 
 export class SocketService {
     private socket: WebSocket | null = null;
     private subscriptions: ((message: Message) => void)[] = [];
+    private errorHandlers: ((error: AppError) => void)[] = [];
 
     constructor(public url: string) {}
 
@@ -19,17 +21,44 @@ export class SocketService {
             this.socket.onmessage = event => {
                 if (event.data === "heartbeat") return;
 
-                const data = JSON.parse(event.data);
-                this.subscriptions.forEach(subscription => subscription(data));
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type) {
+                        // This is an error message
+                        this.handleError(data);
+                    } else {
+                        // This is a regular message
+                        this.subscriptions.forEach(subscription =>
+                            subscription(data)
+                        );
+                    }
+                } catch (error) {
+                    console.error("Error parsing message:", error);
+                    this.handleError({
+                        type: "SYSTEM_ERROR",
+                        code: 500,
+                        message: "Error parsing message from server",
+                    });
+                }
             };
 
             this.socket.onerror = event => {
                 console.error("WebSocket error:", event);
+                this.handleError({
+                    type: "WEBSOCKET_ERROR",
+                    code: 500,
+                    message: "WebSocket connection error",
+                });
                 reject(false);
             };
 
             this.socket.onclose = () => {
                 console.log("Disconnected from the server");
+                this.handleError({
+                    type: "CONNECTION_ERROR",
+                    code: 500,
+                    message: "Disconnected from the server",
+                });
                 this.tryReconnect();
                 reject(false);
             };
@@ -41,7 +70,16 @@ export class SocketService {
     }
 
     public sendMessage(message: SocketMessage) {
-        if (this.socket?.readyState !== WebSocket.OPEN) return;
+        if (this.socket?.readyState !== WebSocket.OPEN) {
+            if (message?.action !== SocketAction.HEARTBEAT) {
+                this.handleError({
+                    type: "CONNECTION_ERROR",
+                    code: 500,
+                    message: "WebSocket is not connected",
+                });
+            }
+            return;
+        }
         this.socket?.send(JSON.stringify(message));
     }
 
@@ -53,6 +91,20 @@ export class SocketService {
         this.subscriptions = this.subscriptions.filter(
             subscription => subscription !== callback
         );
+    }
+
+    public onError(callback: (error: AppError) => void) {
+        this.errorHandlers.push(callback);
+    }
+
+    public removeErrorHandler(callback: (error: AppError) => void) {
+        this.errorHandlers = this.errorHandlers.filter(
+            handler => handler !== callback
+        );
+    }
+
+    private handleError(error: AppError) {
+        this.errorHandlers.forEach(handler => handler(error));
     }
 
     public heartbeat() {
@@ -75,9 +127,12 @@ export class SocketService {
                     if (count < maxAttempts) {
                         setTimeout(attempt, delay * Math.min(count, 3));
                     } else {
-                        console.error(
-                            "Max attempts reached, failed to reconnect to the server"
-                        );
+                        this.handleError({
+                            type: "CONNECTION_ERROR",
+                            code: 500,
+                            message:
+                                "Max attempts reached, failed to reconnect to the server",
+                        });
                     }
                 }
             });

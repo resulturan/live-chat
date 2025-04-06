@@ -1,14 +1,25 @@
+import { App } from "antd";
 import { useEffect } from "react";
+import { chatSocket } from "../../services/socket";
 import {
+    selectIsAppInitialized,
     useAppDispatch,
     useAppSelector,
-    selectIsAppInitialized,
 } from "../../store";
-import { useLogin } from "./useLogin";
 import { appActions } from "../../store/app-slice";
-import { chatSocket } from "../../services/socket";
+import {
+    AppError,
+    isAuthError,
+    isDBError,
+    isSystemError,
+    isValidationError,
+    isWebSocketError,
+} from "../../types/Error";
+import { useLogin } from "./useLogin";
 
 export function useAppInit() {
+    const { notification } = App.useApp();
+
     const { login } = useLogin();
     const dispatch = useAppDispatch();
     const isAppInitialized = useAppSelector(selectIsAppInitialized);
@@ -25,6 +36,46 @@ export function useAppInit() {
 
         chatSocket.connect();
     }, []);
+
+    useEffect(() => {
+        const handleError = (error: AppError) => {
+            if (isValidationError(error)) {
+                notification.error({
+                    message: error.message,
+                    description: error.field
+                        ? `Field: ${error.field}`
+                        : undefined,
+                });
+            } else if (isAuthError(error)) {
+                notification.error({
+                    message: "Authentication Error",
+                    description: error.message,
+                });
+                dispatch(appActions.logout());
+            } else if (isDBError(error)) {
+                notification.error({
+                    message: "Database Error",
+                    description: error.message,
+                });
+            } else if (isWebSocketError(error)) {
+                notification.error({
+                    message: "Connection Error",
+                    description: error.message,
+                });
+            } else if (isSystemError(error)) {
+                notification.error({
+                    message: "System Error",
+                    description: error.message,
+                });
+            }
+        };
+
+        chatSocket.onError(handleError);
+
+        return () => {
+            chatSocket.removeErrorHandler(handleError);
+        };
+    }, [notification]);
 
     return { isAppInitialized };
 }

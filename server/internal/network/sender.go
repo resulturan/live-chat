@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	appErrors "resulturan/live-chat-server/internal/errors"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -63,6 +65,14 @@ func (s *send) MixedError(err error) {
 		return
 	}
 
+	// Handle our custom AppError
+	var appError *appErrors.AppError
+	if errors.As(err, &appError) {
+		s.sendError(NewApiError(appError.Code, appError.Message, appError))
+		return
+	}
+
+	// Handle other API errors
 	var apiError ApiError
 	if errors.As(err, &apiError) {
 		s.sendError(apiError)
@@ -74,9 +84,8 @@ func (s *send) MixedError(err error) {
 
 func (s *send) sendResponse(response Response) {
 	s.context.JSON(int(response.GetStatus()), response)
-	// this is needed since gin calls ctx.Next() inside the resposne handeling
-	// ref: https://github.com/gin-gonic/gin/issues/2221
-	s.context.Abort() 
+
+	s.context.Abort()
 }
 
 func (s *send) sendError(err ApiError) {
