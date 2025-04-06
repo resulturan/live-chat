@@ -18,10 +18,13 @@ export const appSlice = createSlice({
         setIsAppInitialized: (state, { payload }: PayloadAction<boolean>) => {
             state.isAppInitialized = payload;
         },
+
+        resetAppState: () => initialAppState,
     },
 });
 
-export const { setUser, logout, setIsAppInitialized } = appSlice.actions;
+export const { setUser, logout, setIsAppInitialized, resetAppState } =
+    appSlice.actions;
 
 export default appSlice.reducer;
 

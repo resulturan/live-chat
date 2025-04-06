@@ -34,7 +34,7 @@ A real-time chat application built with React, TypeScript, and Go. This applicat
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/resulturan/live-chat.git
 cd live-chat
 ```
 
@@ -78,6 +78,7 @@ The application will be available at `http://localhost`
 - **State Management**: Redux Toolkit for global state
 - **Real-time Communication**: WebSocket connection for live updates
 - **UI Framework**: Ant Design for consistent and responsive design
+- **Reverse Proxy**: Nginx for reverse proxy in production
 
 ### Backend Architecture
 - **API Layer**: RESTful endpoints using Gin framework
