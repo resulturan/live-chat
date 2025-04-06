@@ -1,10 +1,14 @@
 import { Message, SocketAction, SocketMessage } from "../types";
-import { AppError } from "../types/Error";
+import { AppError, ErrorType } from "../types/Error";
 
 export class SocketService {
     private socket: WebSocket | null = null;
     private subscriptions: ((message: Message) => void)[] = [];
     private errorHandlers: ((error: AppError) => void)[] = [];
+    private reconnectAttempts = 0;
+    private maxReconnectAttempts = 10;
+    private baseReconnectDelay = 1000; // 1 second
+    private maxReconnectDelay = 30000; // 30 seconds
 
     constructor(public url: string) {}
 
@@ -14,6 +18,7 @@ export class SocketService {
 
             this.socket.onopen = () => {
                 console.log("Connected to the server");
+                this.reconnectAttempts = 0;
                 this.heartbeat();
                 resolve(true);
             };
@@ -35,7 +40,7 @@ export class SocketService {
                 } catch (error) {
                     console.error("Error parsing message:", error);
                     this.handleError({
-                        type: "SYSTEM_ERROR",
+                        type: ErrorType.SYSTEM_ERROR,
                         code: 500,
                         message: "Error parsing message from server",
                     });
@@ -45,7 +50,7 @@ export class SocketService {
             this.socket.onerror = event => {
                 console.error("WebSocket error:", event);
                 this.handleError({
-                    type: "WEBSOCKET_ERROR",
+                    type: ErrorType.WEBSOCKET_ERROR,
                     code: 500,
                     message: "WebSocket connection error",
                 });
@@ -55,7 +60,7 @@ export class SocketService {
             this.socket.onclose = () => {
                 console.log("Disconnected from the server");
                 this.handleError({
-                    type: "CONNECTION_ERROR",
+                    type: ErrorType.CONNECTION_ERROR,
                     code: 500,
                     message: "Disconnected from the server",
                 });
@@ -73,7 +78,7 @@ export class SocketService {
         if (this.socket?.readyState !== WebSocket.OPEN) {
             if (message?.action !== SocketAction.HEARTBEAT) {
                 this.handleError({
-                    type: "CONNECTION_ERROR",
+                    type: ErrorType.CONNECTION_ERROR,
                     code: 500,
                     message: "WebSocket is not connected",
                 });
@@ -114,31 +119,27 @@ export class SocketService {
         setTimeout(() => this.heartbeat(), 10000);
     }
 
-    public tryReconnect() {
-        let count = 0;
-        const maxAttempts = 10;
-        const delay = 1000;
-
-        const attempt = () => {
-            this.connect().then(success => {
-                if (success) count = 0;
-                else {
-                    count++;
-                    if (count < maxAttempts) {
-                        setTimeout(attempt, delay * Math.min(count, 3));
-                    } else {
-                        this.handleError({
-                            type: "CONNECTION_ERROR",
-                            code: 500,
-                            message:
-                                "Max attempts reached, failed to reconnect to the server",
-                        });
-                    }
-                }
+    private tryReconnect() {
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            this.handleError({
+                type: ErrorType.CONNECTION_ERROR,
+                code: 500,
+                message: "Max reconnection attempts reached",
             });
-        };
+            return;
+        }
 
-        attempt();
+        const delay = Math.min(
+            this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts),
+            this.maxReconnectDelay
+        );
+
+        setTimeout(() => {
+            this.reconnectAttempts++;
+            this.connect().catch(() => {
+                // Connection failed, will retry on next interval
+            });
+        }, delay);
     }
 }
 

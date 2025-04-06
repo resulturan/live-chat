@@ -9,6 +9,7 @@ import {
 import { appActions } from "../../store/app-slice";
 import {
     AppError,
+    ErrorType,
     isAuthError,
     isDBError,
     isSystemError,
@@ -58,10 +59,19 @@ export function useAppInit() {
                     description: error.message,
                 });
             } else if (isWebSocketError(error)) {
-                notification.error({
-                    message: "Connection Error",
-                    description: error.message,
-                });
+                if (error.type === ErrorType.RATE_LIMIT_ERROR) {
+                    notification.warning({
+                        message: "Rate Limit Exceeded",
+                        description:
+                            "Please wait a moment before sending more messages",
+                        duration: 5,
+                    });
+                } else {
+                    notification.error({
+                        message: "Connection Error",
+                        description: error.message,
+                    });
+                }
             } else if (isSystemError(error)) {
                 notification.error({
                     message: "System Error",
