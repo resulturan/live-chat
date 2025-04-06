@@ -18,7 +18,4 @@ jobs:
               with:
                   working-directory: ui
                   install-command: yarn install
-                  build: yarn build
-                  start: yarn dev
-                  browser: chrome
                   component: true
