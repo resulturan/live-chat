@@ -89,12 +89,16 @@ The application will be available at `http://localhost`
 ## Testing
 
 ### Frontend Tests
+- Frontend tests implemented with Cypress
+
 ```bash
 cd ui
 yarn test
 ```
 
 ### Backend Tests
+- Backend tests implemented with Go test
+
 ```bash
 cd server
 go test ./...

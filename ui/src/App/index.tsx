@@ -1,4 +1,5 @@
 import "@fontsource/source-sans-pro";
+import { App as AntApp } from "antd";
 import { ErrorBoundary } from "react-error-boundary";
 import { Provider } from "react-redux";
 import Chat from "../Chat";
@@ -18,11 +19,13 @@ export default function App() {
                     store.dispatch(appActions.resetAppState());
                 }}
             >
-                <Theme>
-                    <Chat />
+                <AntApp>
+                    <Theme>
+                        <Chat />
 
-                    <LoginModal />
-                </Theme>
+                        <LoginModal />
+                    </Theme>
+                </AntApp>
             </ErrorBoundary>
         </Provider>
     );

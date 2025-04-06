@@ -1,6 +1,6 @@
 import { useAppInit } from "../App/hooks";
-import Header from "./Header";
 import Messages from "../Messages";
+import Header from "./Header";
 import NewMessage from "./NewMessage";
 import Styles from "./Styles.module.scss";
 

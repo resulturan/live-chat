@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"resulturan/live-chat-server/internal/mongo"
+	"resulturan/live-chat-server/internal/validation"
 
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,12 +18,17 @@ const UserCollectionName = "users"
 
 type User struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	UserName  string             `bson:"username" validate:"required,max=200,unique" json:"username"`
+	UserName  string             `bson:"username" validate:"required,max=20,unique" json:"username"`
 	CreatedAt time.Time          `bson:"createdAt,omitempty" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt,omitempty" json:"updatedAt"`
 }
 
 func NewUser(username string) (*User, error) {
+	// Validate username
+	if err := validation.ValidateUsername(username); err != nil {
+		return nil, err
+	}
+
 	now := time.Now()
 	u := User{
 		UserName:  username,
