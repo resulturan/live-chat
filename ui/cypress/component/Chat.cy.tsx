@@ -42,6 +42,8 @@ describe("Chat.cy.tsx", () => {
             cy.get("#new-message-button").click();
 
             cy.get("#new-message-input").should("have.value", "");
+
+            cy.get("#messages-list").should("contain", "Test message");
         });
     });
 });

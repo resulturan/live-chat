@@ -8,6 +8,7 @@
     "dev": "rsbuild dev",
     "lint": "eslint .",
     "serve": "serve -s dist",
+    "test": "cypress run --component",
     "preview": "rsbuild preview",
     "cypress:open": "cypress open"
   },

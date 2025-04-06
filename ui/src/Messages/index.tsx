@@ -38,7 +38,7 @@ export default function Messages() {
         );
 
     return (
-        <div className={Styles.messages} ref={ref}>
+        <div className={Styles.messages} ref={ref} id="messages-list">
             {messages?.map((message, i) => (
                 <MessageItem
                     key={message.id}
