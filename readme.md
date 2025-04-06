@@ -1,60 +1,146 @@
 # Live Chat Application
 
-## Overview
-This assignment is designed to evaluate your ability to design and implement a full-stack real-time chat application. The task assesses your skills in front-end and back-end development, system design, state management, and handling real-time data updates.
+A real-time chat application built with React, TypeScript, and Go. This application allows multiple users to join a single chat session, send messages, and view message history in real-time.
 
-## Requirements
+## Features
 
-### Core Features
+- Real-time messaging using WebSocket
+- Persistent message history with MongoDB
+- User authentication (without password)
+- Real-time updates without page reload
+- Clean and intuitive UI
 
-#### Frontend
-The UI should be a webpage and include at least:
-- A text input to set a username
-- A text area input to enter the message
-- A display of the message history where each message should at least contain:
-  - The username of the user that sent the message
-  - The content of the message
+## Tech Stack
 
-#### Backend
-The frontend should be backed by a backend containing one or multiple services that deal with the given requirements like:
-- Persisting the message history
-- Serving the message history when a user joins the channel
-- Pushing real-time updates to all users
+### Frontend
+- React with TypeScript
+- Redux Toolkit for state management
+- Ant Design for UI components
+- WebSocket for real-time communication
 
-### Key Requirements
-- No multiple channels required. There is only one chat session that every user connects to when joining the chat.
-- Multiple users can join the session, for example by opening a new browser window/tab.
-- Message history should persist even after a user leaves the session.
-- Messages and user activity should update in real time without requiring a page reload.
+### Backend
+- Go with Gin web framework
+- MongoDB for data persistence
+- WebSocket for real-time communication
+- Gorilla WebSocket for WebSocket implementation
 
-## Technical Expectations
+## Prerequisites
 
-### Technology Stack
-- **Language**: 
-  - Frontend: React and TypeScript
-  - Backend: TypeScript or Go
+- Node.js (v18 or higher)
+- Go (v1.20 or higher)
+- MongoDB (v5.0 or higher)
 
-### Development Requirements
-- **Testing**: Add at least one useful test for a part of the code of your choice
-- **Error Handling & Logging**: Implement proper error handling and logging both on the client and server side
-- **Containerization (Bonus)**: Optionally, containerize your solution using Docker for ease of deployment
+## Installation
 
-## Deliverables
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd live-chat
+```
 
-### Repository Requirements
-- A public repository with the complete code and clear documentation, shared via a public Git provider (e.g., GitHub, GitLab, Bitbucket)
+2. Install frontend dependencies:
+```bash
+cd ui
+yarn install
+```
 
-### README File Requirements
-The README should include:
-- Instructions on how to run the application (it should run on Windows, Mac, and Linux)
-- A brief explanation of the architectural choices
-- Possible improvements and trade-offs considered
-- Any additional tests or deployment configurations (if applicable)
+3. Install backend dependencies:
+```bash
+cd server
+go get ./cmd
+```
 
-## Evaluation Criteria
+## Running the Application
 
-The application will be evaluated based on:
-- **Code Quality & Readability**: Clean, maintainable, and well-structured code
-- **Functionality & Requirements Fulfillment**: The application meets all the specified requirements
-- **Scalability & Performance Considerations**: Thoughtfulness in handling concurrency and large message volumes
-- **Error Handling & User Experience**: Proper handling of errors and intuitive UI/UX
+1. Start MongoDB:
+```bash
+# Make sure MongoDB is running on default port 27017
+```
+
+2. Start the backend server:
+```bash
+cd server
+go run ./cmd
+```
+
+3. Start the frontend development server:
+```bash
+cd ui
+yarn dev
+```
+
+The application will be available at `http://localhost`
+
+## Architecture
+
+### Frontend Architecture
+- **Components**: React functional components with hooks
+- **State Management**: Redux Toolkit for global state
+- **Real-time Communication**: WebSocket connection for live updates
+- **UI Framework**: Ant Design for consistent and responsive design
+
+### Backend Architecture
+- **API Layer**: RESTful endpoints using Gin framework
+- **WebSocket Layer**: Gorilla WebSocket for real-time communication
+- **Data Layer**: MongoDB for persistent storage
+- **Service Layer**: Business logic separation
+
+## Testing
+
+### Frontend Tests
+```bash
+cd ui
+yarn test
+```
+
+### Backend Tests
+```bash
+cd server
+go test ./...
+```
+
+## Improvements and Trade-offs
+
+### Improvements
+1. **Scalability**:
+   - Implement message pagination for large chat histories
+   - Add Redis for caching frequently accessed data
+   - Implement message queue for high-volume scenarios
+
+2. **Features**:
+   - Add message editing and deletion
+   - Implement typing indicators
+   - Add file sharing capabilities
+   - Implement message reactions
+
+3. **Security**:
+   - Add rate limiting
+   - Implement message encryption
+   - Add user authentication with JWT
+
+### Trade-offs
+1. **Real-time vs Performance**:
+   - WebSocket provides real-time updates but requires persistent connections
+   - Considered polling as an alternative but chose WebSocket for better performance
+
+2. **State Management**:
+   - Chose Redux Toolkit over Context API for better debugging and simplicity
+
+3. **Database Choice**:
+   - MongoDB provides flexibility
+   - Chose MongoDB for its document model which fits chat data well
+
+## Error Handling
+
+- Frontend: Global error boundary and toast notifications
+- Backend: Structured error responses and logging
+- WebSocket: Automatic reconnection and error recovery
+
+## Deployment
+
+The application can be containerized using Docker:
+
+```bash
+# Build and run containers
+docker compose up --build
+```

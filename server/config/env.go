@@ -20,14 +20,6 @@ type Env struct {
 	DBMinPoolSize  uint16 `mapstructure:"DB_MIN_POOL_SIZE"`
 	DBMaxPoolSize  uint16 `mapstructure:"DB_MAX_POOL_SIZE"`
 	DBQueryTimeout uint16 `mapstructure:"DB_QUERY_TIMEOUT_SEC"`
-	// keys
-	RSAPrivateKeyPath string `mapstructure:"RSA_PRIVATE_KEY_PATH"`
-	RSAPublicKeyPath  string `mapstructure:"RSA_PUBLIC_KEY_PATH"`
-	// Token
-	AccessTokenValiditySec  uint64 `mapstructure:"ACCESS_TOKEN_VALIDITY_SEC"`
-	RefreshTokenValiditySec uint64 `mapstructure:"REFRESH_TOKEN_VALIDITY_SEC"`
-	TokenIssuer             string `mapstructure:"TOKEN_ISSUER"`
-	TokenAudience           string `mapstructure:"TOKEN_AUDIENCE"`
 }
 
 func NewEnv(filename string, override bool) *Env {
