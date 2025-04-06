@@ -4,8 +4,8 @@ export interface Message {
     id: string;
     text: string;
     senderId: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string;
+    updatedAt: string;
     user: User | null;
 }
 
@@ -14,8 +14,8 @@ export function CreateMessage(message: Partial<Message>): Message {
         id: message.id || "",
         text: message.text || "",
         senderId: message.senderId || "",
-        createdAt: message.createdAt || new Date(),
-        updatedAt: message.updatedAt || new Date(),
+        createdAt: message.createdAt || new Date().toISOString(),
+        updatedAt: message.updatedAt || new Date().toISOString(),
         user: message.user || null,
     };
 }

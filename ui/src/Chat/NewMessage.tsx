@@ -41,6 +41,7 @@ export default function NewMessage() {
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 onPressEnter={e => e?.ctrlKey && onSendMessage()}
+                id="new-message-input"
                 autoFocus
             />
 
@@ -48,6 +49,7 @@ export default function NewMessage() {
                 type="primary"
                 icon={<SendOutlined />}
                 onClick={onSendMessage}
+                id="new-message-button"
             />
         </div>
     );

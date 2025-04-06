@@ -4,9 +4,7 @@ export class SocketService {
     private socket: WebSocket | null = null;
     private subscriptions: ((message: Message) => void)[] = [];
 
-    constructor(public url: string) {
-        this.connect();
-    }
+    constructor(public url: string) {}
 
     public connect(): Promise<boolean> {
         return new Promise((resolve, reject) => {
@@ -89,8 +87,6 @@ export class SocketService {
     }
 }
 
-export const chatSocket = new SocketService("/ws/chat");
-
-chatSocket.subscribe(message => {
-    console.log(message);
-});
+export const chatSocket = new SocketService(
+    `ws://${window.location.host}/ws/chat`
+);

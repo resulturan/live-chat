@@ -6,7 +6,7 @@ import {
 } from "../../store";
 import { useLogin } from "./useLogin";
 import { appActions } from "../../store/app-slice";
-
+import { chatSocket } from "../../services/socket";
 export function useAppInit() {
     const { login } = useLogin();
     const dispatch = useAppDispatch();
@@ -21,6 +21,8 @@ export function useAppInit() {
         } else {
             dispatch(appActions.setIsAppInitialized(true));
         }
+
+        chatSocket.connect();
     }, []);
 
     return { isAppInitialized };

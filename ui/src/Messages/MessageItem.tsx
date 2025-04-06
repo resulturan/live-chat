@@ -27,7 +27,7 @@ export default function MessageItem({ message, lastOfDay }: MessageItemProps) {
                     {getDateText()}
                 </Divider>
             )}
-            <div className={Styles.messageRow}>
+            <div className={Styles.messageRow} id={message.id}>
                 {!isMine && <div className={Styles.leftArrow} />}
                 <div
                     className={cs(Styles.messageBox, {
