@@ -23,3 +23,5 @@ setupListeners(store.dispatch);
 export default store;
 
 export * from "./selectors";
+
+export const getStore = () => store;
