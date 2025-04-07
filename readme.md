@@ -9,6 +9,7 @@ A real-time chat application built with React, TypeScript, and Go. This applicat
 - User authentication (without password)
 - Real-time updates without page reload
 - Clean and intuitive UI
+- Infinite scroll for message history
 
 ## Tech Stack
 
@@ -127,6 +128,7 @@ go test ./...
 1. **Real-time vs Performance**:
    - WebSocket provides real-time updates but requires persistent connections
    - Considered polling as an alternative but chose WebSocket for better performance
+   - Infinite scroll implementation balances performance with user experience
 
 2. **State Management**:
    - Chose Redux Toolkit over Context API for better debugging and simplicity
