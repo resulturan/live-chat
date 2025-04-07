@@ -26,6 +26,7 @@ type Query[T any] interface {
 	UpdateMany(filter bson.M, update bson.M) (*mongo.UpdateResult, error)
 	DeleteOne(filter bson.M) (*mongo.DeleteResult, error)
 	Aggregate(pipeline mongo.Pipeline) ([]*T, error)
+	CountDocuments(filter bson.M, opts *options.CountOptions) (int64, error)
 }
 
 type query[T any] struct {
@@ -271,4 +272,13 @@ func (q *query[T]) Aggregate(pipeline mongo.Pipeline) ([]*T, error) {
 	}
 
 	return docs, nil
+}
+
+func (q *query[T]) CountDocuments(filter bson.M, opts *options.CountOptions) (int64, error) {
+	defer q.Close()
+	count, err := q.collection.CountDocuments(q.context, filter, opts)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

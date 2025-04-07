@@ -5,6 +5,8 @@
 }
 
 .messages {
+    display: flex;
+    flex-direction: column-reverse;
     height: calc(100% - 190px);
     overflow-y: auto;
     box-sizing: border-box;
@@ -17,6 +19,13 @@
         &:has(.mine) {
             justify-content: flex-end;
         }
+    }
+
+    .endMessage {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #666668;
     }
 
     .dateDivider {

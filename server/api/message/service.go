@@ -14,7 +14,8 @@ import (
 
 type Service interface {
 	CreateMessage(dto *dto.CreateMessage) (*messageModel.Message, error)
-	GetMessageList() ([]*messageModel.Message, error)
+	GetMessageList(dto *dto.GetMessages) ([]*messageModel.Message, error)
+	GetMessageCount() (int64, error)
 }
 
 type service struct {
@@ -29,7 +30,7 @@ func NewService(db mongo.Database) Service {
 	}
 }
 
-func (s *service) GetMessageList() ([]*messageModel.Message, error) {
+func (s *service) GetMessageList(dto *dto.GetMessages) ([]*messageModel.Message, error) {
 	populateUserState := bson.D{
 		{"$lookup", bson.D{
 			{"from", "users"},
@@ -40,7 +41,9 @@ func (s *service) GetMessageList() ([]*messageModel.Message, error) {
 	}
 	convertToUser := bson.D{{"$unwind", "$user"}}
 	sort := bson.D{{"$sort", bson.D{{"createdAt", -1}}}}
-	messageList, err := s.messageQueryBuilder.Query(context.Background()).Aggregate([]bson.D{populateUserState, convertToUser, sort})
+	skip := bson.D{{"$skip", dto.GetOffset()}}
+	limit := bson.D{{"$limit", dto.GetLimit()}}
+	messageList, err := s.messageQueryBuilder.Query(context.Background()).Aggregate([]bson.D{populateUserState, convertToUser, sort, skip, limit})
 	if err != nil {
 		log.Error("error getting message list", "error", err)
 		return nil, err
@@ -64,4 +67,12 @@ func (s *service) CreateMessage(dto *dto.CreateMessage) (*messageModel.Message, 
 	}
 	message.ID = *id
 	return message, nil
+}
+
+func (s *service) GetMessageCount() (int64, error) {
+	count, err := s.messageQueryBuilder.SingleQuery().CountDocuments(bson.M{}, nil)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

@@ -5,7 +5,11 @@ import { selectUser, useAppSelector } from "../store";
 import { Message } from "../types/Message";
 import Styles from "./Styles.module.scss";
 
-export default function MessageItem({ message, lastOfDay }: MessageItemProps) {
+export default function MessageItem({
+    message,
+    lastOfDay,
+    index,
+}: MessageItemProps) {
     const user = useAppSelector(selectUser);
 
     const isMine = message.user?.username === user?.username;
@@ -22,11 +26,6 @@ export default function MessageItem({ message, lastOfDay }: MessageItemProps) {
 
     return (
         <>
-            {lastOfDay && (
-                <Divider className={Styles.dateDivider}>
-                    {getDateText()}
-                </Divider>
-            )}
             <div className={Styles.messageRow} id={message.id}>
                 {!isMine && <div className={Styles.leftArrow} />}
                 <div
@@ -53,6 +52,14 @@ export default function MessageItem({ message, lastOfDay }: MessageItemProps) {
                 </div>
                 {isMine && <div className={Styles.rightArrow} />}
             </div>
+            {lastOfDay && (
+                <Divider
+                    className={Styles.dateDivider}
+                    style={{ zIndex: 1000 - index }}
+                >
+                    {getDateText()}
+                </Divider>
+            )}
         </>
     );
 }
@@ -60,4 +67,5 @@ export default function MessageItem({ message, lastOfDay }: MessageItemProps) {
 interface MessageItemProps {
     message: Message;
     lastOfDay: boolean;
+    index: number;
 }

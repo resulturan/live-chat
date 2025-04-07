@@ -29,12 +29,20 @@ func (m *MockService) CreateMessage(dto *dto.CreateMessage) (*messageModel.Messa
 	return args.Get(0).(*messageModel.Message), args.Error(1)
 }
 
-func (m *MockService) GetMessageList() ([]*messageModel.Message, error) {
-	args := m.Called()
+func (m *MockService) GetMessageList(dto *dto.GetMessages) ([]*messageModel.Message, error) {
+	args := m.Called(dto)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*messageModel.Message), args.Error(1)
+}
+
+func (m *MockService) GetMessageCount() (int64, error) {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return 0, args.Error(1)
+	}
+	return args.Get(0).(int64), args.Error(1)
 }
 
 func setupRouter(service Service) *gin.Engine {
@@ -103,12 +111,14 @@ func TestCreateMessageHandler(t *testing.T) {
 func TestGetMessageListHandler(t *testing.T) {
 	tests := []struct {
 		name           string
+		queryParams    string
 		mockMessages   []*messageModel.Message
 		mockError      error
 		expectedStatus int
 	}{
 		{
-			name: "successful message list retrieval",
+			name:        "successful message list retrieval with pagination",
+			queryParams: "?offset=0&limit=20",
 			mockMessages: []*messageModel.Message{
 				{
 					ID:        primitive.NewObjectID(),
@@ -128,25 +138,60 @@ func TestGetMessageListHandler(t *testing.T) {
 		},
 		{
 			name:           "empty message list",
+			queryParams:    "?offset=0&limit=20",
 			mockMessages:   []*messageModel.Message{},
 			mockError:      nil,
 			expectedStatus: http.StatusOK,
 		},
 		{
 			name:           "error retrieving messages",
+			queryParams:    "?offset=0&limit=20",
 			mockMessages:   nil,
 			mockError:      assert.AnError,
 			expectedStatus: http.StatusInternalServerError,
+		},
+		{
+			name:           "invalid offset parameter",
+			queryParams:    "?offset=invalid&limit=20",
+			mockMessages:   nil,
+			mockError:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "invalid limit parameter",
+			queryParams:    "?offset=0&limit=invalid",
+			mockMessages:   nil,
+			mockError:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "missing offset parameter",
+			queryParams:    "?limit=20",
+			mockMessages:   nil,
+			mockError:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "missing limit parameter",
+			queryParams:    "?offset=0",
+			mockMessages:   nil,
+			mockError:      nil,
+			expectedStatus: http.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockService := new(MockService)
-			mockService.On("GetMessageList").Return(tt.mockMessages, tt.mockError)
+			if tt.expectedStatus == http.StatusOK {
+				mockService.On("GetMessageList", &dto.GetMessages{
+					Offset: &[]int{0}[0],
+					Limit:  &[]int{20}[0],
+				}).Return(tt.mockMessages, tt.mockError)
+			}
 
 			router := setupRouter(mockService)
-			req, _ := http.NewRequest("GET", "/api/message", nil)
+			req, _ := http.NewRequest("GET", "/api/message"+tt.queryParams, nil)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -173,4 +218,56 @@ func TestGetMessageListHandler(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetMessageCountHandler(t *testing.T) {
+	tests := []struct {
+		name           string
+		mockCount      int64
+		mockError      error
+		expectedStatus int
+	}{
+		{
+			name:           "successful count retrieval",
+			mockCount:      42,
+			mockError:      nil,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "error retrieving count",
+			mockCount:      0,
+			mockError:      assert.AnError,
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockService := new(MockService)
+			if tt.expectedStatus == http.StatusOK {
+				mockService.On("GetMessageCount").Return(tt.mockCount, tt.mockError)
+			}
+
+			router := setupRouter(mockService)
+			req, _ := http.NewRequest("GET", "/api/message/count", nil)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			mockService.AssertExpectations(t)
+
+			if tt.expectedStatus == http.StatusOK {
+				var response struct {
+					Status int   `json:"status"`
+					Data   int64 `json:"data"`
+				}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+				assert.Equal(t, http.StatusOK, response.Status)
+				assert.Equal(t, tt.mockCount, response.Data)
+			}
+		})
+	}
 } 
+
