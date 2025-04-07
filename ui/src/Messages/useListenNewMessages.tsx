@@ -16,7 +16,7 @@ export function useListenNewMessages(limit: number) {
                     (draft: InfiniteData<Message[], number>) => {
                         const newMessage = CreateMessage(action);
                         if (!newMessage.id) return;
-                        draft.pages[0].unshift(newMessage);
+                        draft.pages[0].push(newMessage);
                     }
                 )
             );

@@ -15,7 +15,7 @@ export function initServer() {
 }
 
 function mockServer() {
-    sockets.mockServer = new Server("ws://localhost:8080/ws/chat");
+    sockets.mockServer = new Server(`ws://${window.location.host}/ws/chat`);
 
     sockets.mockServer.on("connection", socket => {
         sockets.server = socket;
@@ -26,7 +26,7 @@ function mockServer() {
                 socket.send(
                     JSON.stringify(
                         CreateMessage({
-                            id: crypto.randomUUID(),
+                            id: newMessageId,
                             text: data.text,
                             senderId: data.senderId,
                             createdAt: new Date().toISOString(),
@@ -48,3 +48,5 @@ function mockServer() {
         });
     });
 }
+
+export const newMessageId = crypto.randomUUID();

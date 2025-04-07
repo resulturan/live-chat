@@ -1,6 +1,6 @@
 import Chat from "../../src/Chat";
 import React from "react";
-import { initServer } from "./server";
+import { initServer, newMessageId } from "./server";
 import { WebSocket } from "mock-socket";
 
 describe("Chat.cy.tsx", () => {
@@ -17,12 +17,21 @@ describe("Chat.cy.tsx", () => {
         cy.intercept(
             {
                 method: "GET",
-                url: "/api/message",
+                url: "/api/message*",
             },
             {
                 data: exampleMessageList,
             }
         ).as("getMessages");
+        cy.intercept(
+            {
+                method: "GET",
+                url: "/api/message/count",
+            },
+            {
+                data: exampleMessageList.length,
+            }
+        ).as("getMessageCount");
 
         cy.intercept(
             {
@@ -44,6 +53,11 @@ describe("Chat.cy.tsx", () => {
             cy.get("#new-message-input").should("have.value", "");
 
             cy.get("#messages-list").should("contain", "Test message");
+            cy.get(`#${newMessageId}`)
+                .parent()
+                .children()
+                .first()
+                .should("have.attr", "id", newMessageId);
         });
     });
 });
